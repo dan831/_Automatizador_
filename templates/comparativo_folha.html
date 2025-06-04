@@ -1,0 +1,177 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<form id="comparativo-form" method="POST">
+    <h1 id="h1_comparativo">Gerador de Relatório</h1></br>
+        <label id="label-drop" class="bold-label" for="tabelas">Selecione uma Consulta:</label>
+    <div class="dropdown-container">
+        <div id="dropdown-button" class="dropdown-button" onclick="toggleDropdown()">
+            Selecione uma opção <i class="fas fa-chevron-down"></i>
+        </div>
+        <ul class="dropdown-menu">
+            <li value="Analitico_Contracheque">✅ Relatório de bruto e líquido por órgão de pagamento</li>
+            <li value="Analitico_Prévia">❌ Analitico_Prévia</li>
+            <li value="RH">✅ Relatório de RH por órgão de origem</li>
+            <li value="RH">❌ Relatório financeiro com órgão de origem</li>
+            <li value="Promocao">✅ Promoção_Atual</li>
+            <li value="Rubricas">✅ Rubricas ('R', 'D')</li>
+            <li value="Rubricas_por_codigo">❌ Rubricas_por_codigo</li>
+            <li value="Codigo_Rubrica">❌ Código_Rubrica</li>
+            <li value="Pensionistas_Funprev">✅ Pensionistas_Funprev</li>
+            <li value="Aposentados_Funprev">✅ Aposentados_Funprev</li>
+            <li value="Estagiários_Cadastro">✅ Estagiários Cadastros</li>
+            <li value="Estagiários_em_Folha">✅ Estagiários em folha</li>
+            <li value="Base_de_servidores_para_envio_ao_Picpay">✅ Base de servidores para envio ao Picpay</li>
+        </ul>
+        <input type="hidden" id="consulta-selecionada" name="consulta">
+    </div>
+    <div class="form-row">
+        
+        <div id="campo-mes" class="form-group" style="display:none;">
+            <label id="label-mes" class="bold-label" for="mes">Mês:</label>
+            <input type="number" id="mes" name="mes" min="1" max="12" placeholder="1">
+        </div>
+        <div id="campo-ano" class="form-group" style="display:none;">
+            <label id="label-ano" class="bold-label" for="ano">Ano:</label>
+            <input type="number" id="ano" name="ano" min="2022" max="2025" placeholder="2025">
+        </div>
+        <div id="campo-empresa" class="form-group" style="display:none;">
+            <label id="label-empresa" class="bold-label" for="tabelas-select">Empresas:</label>
+            <div class="dropdown-container-tabelas">
+                <button id="dropdownTabelasButton" class="dropdown-button-tabelas" type="button">
+                    Selecione uma Empresa <i class="fas fa-chevron-down"></i>
+                </button>
+                <ul id="dropdownTabelasMenu" class="dropdown-menu-tabelas">
+                    {% for tabela in tabelas %}
+                        <li data-value="{{ tabela }}">{{ tabela }}</li>
+                    {% endfor %}  
+                </ul>
+                <input type="hidden" id="tabelas-select" name="tabelas">
+            </div>
+        </div>
+    </div>
+    <div class="form-row">
+        <div id="campo-rubrica" class="form-group" style="display:none;">
+            <label id="label-rubrica" class="bold-label" for="rubrica">Códigos da Rubrica:</label>
+            <input type="text" id="rubrica" name="rubrica" class="form-control" placeholder="Ex: 999997,999999">
+        </div>
+        </div>
+    <div class="form-row">
+        <button type="submit" id="button-aba1" name="acao" value="gerar">
+            GERAR
+        </button>
+    </div><br>
+    <div id="info-consulta" class="info-box" style="display:none; margin-top:10px; padding:10px; border-radius: 10px; border:1px solid #ccc; background-color:#f9f9f9;">
+        <p id="colunas-lista" style="margin: 0; font-family: 'Montserrat', sans-serif;  font-size: 12px;"></p>
+    </div>    
+
+</form>
+<script>
+    const COLUNAS_CONSULTAS = JSON.parse('{{ colunas_consultas | tojson | safe }}');
+    const CAMPOS_VISIVEIS = JSON.parse('{{ campos_visiveis | tojson | safe }}');
+
+    document.addEventListener("DOMContentLoaded", function () {
+        // --- Dropdown de Empresa ---
+        const dropdownTabelasButton = document.getElementById("dropdownTabelasButton");
+        const dropdownTabelasMenu = document.getElementById("dropdownTabelasMenu");
+        const tabelasInput = document.getElementById("tabelas-select");
+
+        const campoRubrica = document.getElementById('campo-rubrica');
+        const inputRubrica = document.getElementById('rubrica');
+
+        dropdownTabelasButton.addEventListener("click", function (event) {
+            dropdownTabelasMenu.classList.toggle("active");
+            event.stopPropagation();
+        });
+
+        dropdownTabelasMenu.querySelectorAll("li").forEach(item => {
+            item.addEventListener("click", function (event) {
+                dropdownTabelasButton.innerHTML = this.textContent + ' <i class="fas fa-chevron-down"></i>';
+                tabelasInput.value = this.dataset.value;
+                dropdownTabelasMenu.classList.remove("active");
+                event.stopPropagation();
+            });
+        });
+
+        document.addEventListener("click", function (event) {
+            if (!dropdownTabelasButton.contains(event.target) && !dropdownTabelasMenu.contains(event.target)) {
+                dropdownTabelasMenu.classList.remove("active");
+            }
+        });
+
+        // --- Dropdown de Consulta ---
+        const dropdownButton = document.getElementById('dropdown-button');
+        const dropdownMenu = document.querySelector('.dropdown-menu');
+        const consultaInput = document.getElementById('consulta-selecionada');
+
+        const infoBox = document.getElementById('info-consulta');
+        const colunasLista = document.getElementById('colunas-lista');
+
+        // Campos dinâmicos
+        const campoMes = document.getElementById('campo-mes');
+        const campoAno = document.getElementById('campo-ano');
+        const campoEmpresa = document.getElementById('campo-empresa');
+
+        // Validar múltiplos códigos separados por vírgula (até 6 dígitos cada)
+        inputRubrica.addEventListener("input", function (e) {
+            let valor = e.target.value;
+            const valido = valor
+                .split(',')
+                .every(codigo => /^\d{1,6}$/.test(codigo.trim()));
+            if (!valido) {
+                e.target.setCustomValidity("Cada código deve ter até 6 dígitos e ser separado por vírgula.");
+            } else {
+                e.target.setCustomValidity("");
+            }
+        });
+
+        // Ordenar dropdown alfabeticamente (ignorando emojis)
+        const consultaItems = Array.from(dropdownMenu.querySelectorAll('li'));
+        consultaItems.sort((a, b) => {
+            const textA = a.textContent.replace(/[^\p{L}\p{N}]/gu, '').toLowerCase();
+            const textB = b.textContent.replace(/[^\p{L}\p{N}]/gu, '').toLowerCase();
+            return textA.localeCompare(textB);
+        });
+        dropdownMenu.innerHTML = '';
+        consultaItems.forEach(item => dropdownMenu.appendChild(item));
+
+        // Clique nas opções
+        dropdownMenu.querySelectorAll('li').forEach(item => {
+            item.addEventListener('click', function () {
+                const valorSelecionado = this.getAttribute('value');
+                dropdownButton.textContent = this.textContent;
+                consultaInput.value = valorSelecionado;
+                dropdownMenu.classList.remove('active');
+
+                // Descrição das colunas
+                const descricao = COLUNAS_CONSULTAS[valorSelecionado] || 'Nenhuma descrição disponível para esta consulta.';
+                colunasLista.textContent = descricao;
+                infoBox.style.display = 'block';
+
+                // Exibição dinâmica dos campos comuns
+                const campos = CAMPOS_VISIVEIS[valorSelecionado] || [];
+                campoMes.style.display = campos.includes('mes') ? '' : 'none';
+                campoAno.style.display = campos.includes('ano') ? '' : 'none';
+                campoEmpresa.style.display = campos.includes('empresa') ? '' : 'none';
+
+                // Exibição do campo rubrica apenas para certas consultas
+                const deveMostrarRubrica = ['Rubricas_por_codigo', 'Codigo_Rubrica'].includes(valorSelecionado);
+                campoRubrica.style.display = deveMostrarRubrica ? '' : 'none';
+            });
+        });
+
+        // Fechar dropdown ao clicar fora
+        document.addEventListener('click', function (event) {
+            if (!event.target.closest('.dropdown-container')) {
+                dropdownMenu.classList.remove('active');
+            }
+        });
+
+        dropdownButton.addEventListener('click', function () {
+            dropdownMenu.classList.toggle('active');
+        });
+    });
+</script>
+
+
+{% endblock %}

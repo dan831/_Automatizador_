@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FOLHA DE PAGAMENTO</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='fatura.png') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Botão de Logout -->
+    {% set current_path = request.path %}
+
+    <div class="navbar">
+        <img id="image-navbar" src="../static/menu.png" alt="Ilustração de login">
+        <a href="/controle_processo" class="navbar-title">
+           <p id="titulo">DIRETORIA DE FOLHA DE PAGAMENTO</p> 
+        </a>
+        <div class="navbar-menu">
+            {% if 'permissao' in session %}
+                {% if session['permissao'] == 'administrador' %}
+                    <a href="/calculadora" class="{% if request.path == '/calculadora' %}active{% endif %}">
+                        <i class='bx bxs-calculator'></i> <span>Calculadora</span>
+                    </a>
+                    <a href="/indenizacao" class="{% if current_path == '/indenizacao' %}active{% endif %}">
+                        <i class='bx bx-money'></i> <span>Indenização</span>
+                    </a>
+                    <a href="/comparativo_folha" class="{% if current_path == '/comparativo_folha' %}active{% endif %}">
+                        <i class='bx bx-git-compare'></i> <span>Relatórios</span>
+                    </a>
+                    <a href="/historico" class="{% if current_path == '/historico' %}active{% endif %}">
+                        <i class='bx bx-history'></i> <span>Histórico</span>
+                    </a>
+                    <a href="/controle_processo" class="{% if current_path == '/controle_processo' %}active{% endif %}">
+                        <i class='bx bx-cog'></i> <span>Conferência de Processos</span>
+                    </a>
+                    <a href="/portariaAposentadoria" class="{% if current_path == '/portariaAposentadoria' %}active{% endif %}">
+                        <i class='bx bx-file'></i> <span>Portaria Aposentadoria</span>
+                    </a>
+                    <a href="/aposentadoria" class="{% if current_path == '/aposentadoria' %}active{% endif %}">
+                        <i class='bx bx-money'></i> <span>Aposentadoria</span>
+                    </a>
+                    <a href="/alterar_senha" class="{% if current_path == '/alterar_senha' %}active{% endif %}">
+                        <i class='bx bxs-lock-alt'></i> <span>Alterar Senha</span>
+                    </a>
+                {% elif session['permissao'] == 'indenizacao' %}
+                    <a href="/calculadora" class="{% if current_path == '/calculadora' %}active{% endif %}">
+                        <i class='bx bxs-calculator'></i> <span>Calculadora</span>
+                    </a>
+                    <a href="/indenizacao" class="{% if current_path == '/indenizacao' %}active{% endif %}">
+                        <i class='bx bx-money'></i> <span>Indenização</span>
+                    </a>
+                    <a href="/controle_processo" class="{% if current_path == '/controle_processo' %}active{% endif %}">
+                        <i class='bx bx-cog'></i> <span>Conferência de Processos</span>
+                    </a>
+                {% elif session['permissao'] == 'indenizacao_gerencial' %}
+                    <a href="/comparativo_folha" class="{% if current_path == '/comparativo_folha' %}active{% endif %}">
+                        <i class='bx bx-git-compare'></i> <span>Relatórios</span>
+                    </a>
+                    <a href="/calculadora" class="{% if current_path == '/calculadora' %}active{% endif %}">
+                        <i class='bx bxs-calculator'></i> <span>Calculadora</span>
+                    </a>
+                    <a href="/indenizacao" class="{% if current_path == '/indenizacao' %}active{% endif %}">
+                        <i class='bx bx-money'></i> <span>Indenização</span>
+                    </a>
+                    <a href="/controle_processo" class="{% if current_path == '/controle_processo' %}active{% endif %}">
+                        <i class='bx bx-cog'></i> <span>Conferência de Processos</span>
+                    </a>
+                {% elif session['permissao'] == 'aposentadoria_gerencial' %}
+                    <a href="/comparativo_folha" class="{% if current_path == '/comparativo_folha' %}active{% endif %}">
+                        <i class='bx bx-git-compare'></i> <span>Relatórios</span>
+                    </a>
+                    <a href="/portariaAposentadoria" class="{% if current_path == '/portariaAposentadoria' %}active{% endif %}">
+                        <i class='bx bx-file'></i> <span>Portaria Aposentadoria</span>
+                    </a>
+                    <a href="/aposentadoria" class="{% if current_path == '/aposentadoria' %}active{% endif %}">
+                        <i class='bx bx-money'></i> <span>Aposentadoria</span>
+                    </a>
+                {% elif session['permissao'] == 'aposentadoria' %}
+                    <a href="/portariaAposentadoria" class="{% if current_path == '/portariaAposentadoria' %}active{% endif %}">
+                        <i class='bx bx-file'></i> <span>Portaria Aposentadoria</span>
+                    </a>
+                    <a href="/aposentadoria" class="{% if current_path == '/aposentadoria' %}active{% endif %}">
+                        <i class='bx bx-money'></i> <span>Aposentadoria</span>
+                    </a>
+                {% elif session['permissao'] == 'digitacao_gerencial' %}
+                    <a href="/comparativo_folha" class="{% if current_path == '/comparativo_folha' %}active{% endif %}">
+                        <i class='bx bx-git-compare'></i> <span>Relatórios</span>
+                    </a>
+                    <a href="/operacionalizacao" class="{% if current_path == '/operacionalizacao' %}active{% endif %}">
+                        <i class='bx bx-laptop'></i> <span>Operacionalização</span>
+                    </a>
+                    <a href="/controle_processo" class="{% if current_path == '/controle_processo' %}active{% endif %}">
+                        <i class='bx bx-cog'></i> <span>Conferência de Processos</span>
+                    </a>
+                {% elif session['permissao'] == 'digitacao' %}
+                    <a href="/operacionalizacao" class="{% if current_path == '/operacionalizacao' %}active{% endif %}">
+                        <i class='bx bx-laptop'></i> <span>Operacionalização</span>
+                    </a>
+                    <a href="/controle_processo" class="{% if current_path == '/controle_processo' %}active{% endif %}">
+                        <i class='bx bx-cog'></i> <span>Conferência de Processos</span>
+                    </a>
+                {% elif session['permissao'] == 'basico' %}
+                    <a href="/controle_processo" class="{% if current_path == '/controle_processo' %}active{% endif %}">
+                        <i class='bx bx-cog'></i> <span>Conferência de Processos</span>
+                    </a>
+                {% endif %}
+            {% endif %}
+        {% if 'usuario_id' in session %}
+        <div class="logout-container">
+            <form id="logout-form" action="{{ url_for('logout') }}" method="POST">
+                <button type="submit" class="logout-btn">
+                    <i class='bx bx-log-out'></i> Sair
+                </button>
+            </form>
+        </div>
+        {% endif %}
+            <button id="toggle-menu" class="toggle-button">
+                <i class="bx bxs-chevrons-left"></i> <!-- ícone de colapsar -->
+            </button>
+        </div>
+    </div>
+
+    <!-- Bloco onde outras páginas serão carregadas -->
+    <div class="content">
+        {% block content %}
+        {% endblock %}
+    </div>
+
+</body>
+<script>
+    const toggleBtn = document.getElementById('toggle-menu');
+    const navbar = document.querySelector('.navbar');
+
+    toggleBtn.addEventListener('click', () => {
+        navbar.classList.toggle('collapsed');
+    });
+</script>
+
+</html>
